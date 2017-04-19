@@ -1,0 +1,244 @@
+public class MultyUserCalendar 
+{
+
+
+
+    public Boolean includeMyEvents {get;set;}
+    public user us{get;set;}
+    public list<calEvent> events {get;set;}
+    public list<user> userslist{get;set;}
+    
+
+    //The calendar plugin is expecting dates is a certain format. We can use this string to get it formated correctly
+
+    String dtFormat = 'EEE, d MMM yyyy HH:mm:ss z';
+    
+
+    
+
+    //constructor
+    public map<integer,string> usermap=new map<integer,string>();
+    public MultyUserCalendar() 
+    {
+        us=new user();
+        //Default showing my events to on
+        userslist=new list<user>();
+        includeMyEvents = true;
+        integer i=0;
+        for(User usr:[select id,name,Color_Code__c,CommunityNickname from user WHERE IsActive=true and (Profile.Name='DN Aftermarket' or Profile.Name='Force.com - App Subscription User' or Profile.Name='MapAnything') order by Profile.Name asc])
+        {
+            if (usr.Color_Code__c==null)
+            {
+                usr.Color_Code__c='#5465ba';
+            }
+            usermap.put(i,usr.id);
+            userslist.add(usr);
+            i++;
+        }
+
+    }
+    
+    public void regaion()
+    {
+          integer i=0;
+          includeMyEvents = true;
+         userslist=new list<user>();
+       if(us.Region__c!=null)
+       { 
+        
+            for(User usr:[select id,name,Color_Code__c,Region__c ,CommunityNickname from user WHERE Region__c=:us.Region__c and  IsActive=true and (Profile.Name='DN Aftermarket' or Profile.Name='Force.com - App Subscription User' or Profile.Name='MapAnything') order by Profile.Name asc])
+            {
+                if (usr.Color_Code__c==null)
+                {
+                    usr.Color_Code__c='#5465ba';
+                }
+                usermap.put(i,usr.id);
+                userslist.add(usr);
+                i++;
+            }
+        }
+        else
+        {
+            for(User usr:[select id,name,Color_Code__c,CommunityNickname from user WHERE IsActive=true and (Profile.Name='DN Aftermarket' or Profile.Name='Force.com - App Subscription User' or Profile.Name='MapAnything') order by Profile.Name asc])
+            {
+                if (usr.Color_Code__c==null)
+                {
+                    usr.Color_Code__c='#5465ba';
+                }
+                usermap.put(i,usr.id);
+                userslist.add(usr);
+                i++;
+            }
+        }
+        pageLoad();
+    }
+    
+
+    public PageReference pageLoad() 
+    {
+
+        events = new list<calEvent>();
+
+        //Get Contact's Birthdays
+
+         if(us.Region__c!=null)
+       {
+            for(Work_Order__c wo : [select Id,Name,Service_Engineer__c,Contractor_Service_engineer__c,Service_Engineer__r.Region__c,Contractor_Service_engineer__r.name,Service_Engineer__r.name,Opportunity__c,Opportunity__r.name, Start_Date__c, End_Date__c from Work_Order__c where Start_Date__c!= null and Service_Engineer__c!=null and Service_Engineer__r.Region__c=:us.Region__c and (Service_Engineer__r.profile.Name='DN Aftermarket' or Service_Engineer__r.profile.Name='Force.com - App Subscription User' or Service_Engineer__r.profile.Name='MapAnything') ]) //Profile.UserLicense.Name='Salesforce'
+            {
+    
+                //here we need to replace the birth year with the current year so that it will show up on this years calendar
+    
+                DateTime startDT = datetime.newInstance(Date.Today().Year(),wo.Start_Date__c.Month(), wo.Start_Date__c.Day());
+                DateTime endDT;
+                if(wo.End_Date__c!=null)
+                    endDT = datetime.newInstance(Date.Today().Year(),wo.End_Date__c.Month(),wo.End_Date__c.Day());
+    
+                calEvent bday = new calEvent();
+    
+                
+    
+                bday.title = wo.Name + ' : '+wo.Service_Engineer__r.name;
+                bday.woNum=wo.Name;
+    
+                bday.allDay = true;
+    
+                bday.startString = startDT.format(dtFormat);
+    
+                //Because this is an all day event that only spans one day, we can leave the send date null
+                if(endDT!=null)
+                bday.endString = endDT.format(dtFormat);
+                else bday.endString = '';
+    
+                bday.url = '/' + wo.Id;
+                if(wo.Service_Engineer__c!=null)
+                {
+                bday.className = 'event-'+wo.Service_Engineer__c;
+                bday.SEname=wo.Service_Engineer__r.name;
+                }
+                if(wo.Contractor_Service_engineer__c!=null)
+                {
+                  bday.Csename=wo.Contractor_Service_engineer__r.name;
+                }
+                if(wo.Opportunity__c!=null)
+                bday.Oppname=wo.Opportunity__r.name;
+                if(wo.End_Date__c!=null)
+                bday.Duration=wo.Start_Date__c.daysBetween(wo.End_Date__c);
+                else bday.Duration=1;
+                events.add(bday);
+                
+    
+            }
+        }
+        else
+        {
+            for(Work_Order__c wo : [select Id,Name,Service_Engineer__c,Contractor_Service_engineer__c,Contractor_Service_engineer__r.name,Service_Engineer__r.name,Opportunity__c,Opportunity__r.name, Start_Date__c, End_Date__c from Work_Order__c where Start_Date__c!= null and Service_Engineer__c!=null and (Service_Engineer__r.profile.Name='DN Aftermarket' or Service_Engineer__r.profile.Name='Force.com - App Subscription User' or Service_Engineer__r.profile.Name='MapAnything') ]) //Profile.UserLicense.Name='Salesforce'
+            {
+    
+                //here we need to replace the birth year with the current year so that it will show up on this years calendar
+    
+                DateTime startDT = datetime.newInstance(Date.Today().Year(),wo.Start_Date__c.Month(), wo.Start_Date__c.Day());
+                DateTime endDT;
+                if(wo.End_Date__c!=null)
+                    endDT = datetime.newInstance(Date.Today().Year(),wo.End_Date__c.Month(),wo.End_Date__c.Day());
+    
+                calEvent bday = new calEvent();
+    
+                
+    
+                bday.title = wo.Name + ' : '+wo.Service_Engineer__r.name;
+                bday.woNum=wo.Name;
+    
+                bday.allDay = true;
+    
+                bday.startString = startDT.format(dtFormat);
+    
+                //Because this is an all day event that only spans one day, we can leave the send date null
+                if(endDT!=null)
+                bday.endString = endDT.format(dtFormat);
+                else bday.endString = '';
+    
+                bday.url = '/' + wo.Id;
+                if(wo.Service_Engineer__c!=null)
+                {
+                bday.className = 'event-'+wo.Service_Engineer__c;
+                bday.SEname=wo.Service_Engineer__r.name;
+                }
+                if(wo.Contractor_Service_engineer__c!=null)
+                {
+                  bday.Csename=wo.Contractor_Service_engineer__r.name;
+                }
+                if(wo.Opportunity__c!=null)
+                bday.Oppname=wo.Opportunity__r.name;
+                if(wo.End_Date__c!=null)
+                bday.Duration=wo.Start_Date__c.daysBetween(wo.End_Date__c);
+                else bday.Duration=1;
+                events.add(bday);
+                
+    
+            }
+        }
+
+        
+
+        
+
+        
+
+        return null;
+
+    }
+
+    
+
+    public PageReference toggleMyEvents() {
+
+        if(includeMyEvents){
+
+            includeMyEvents = false;
+
+        }
+
+        else{
+
+            includeMyEvents = true;
+
+        }
+
+        pageload();
+
+        return null;
+
+    }
+
+
+
+    
+
+    //Class to hold calendar event data
+
+    public class calEvent{
+
+        public String title {get;set;}
+        public String woNum {get;set;}
+
+        public Boolean allDay {get;set;}
+
+        public String startString {get;private set;}
+
+        public String endString {get;private set;}
+
+        public String url {get;set;}
+
+        public String className {get;set;}
+        
+        public string SEname{get;set;}
+        
+        public string Csename{get;set;}
+        
+        public string Oppname{get;set;}
+        
+        public integer Duration{get;set;}
+
+    }
+
+}

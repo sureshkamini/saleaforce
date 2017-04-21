@@ -1,0 +1,748 @@
+<apex:page showHeader="true" sidebar="false" controller="ClassRoomScheduleCalendar"  id="pg" action="{!search}" >
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js" />
+    <script src="/soap/ajax/29.0/connection.js" type="text/javascript"></script>
+    <script src="/soap/ajax/29.0/apex.js" type="text/javascript"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAP-4e8nLutXOnqvxJyRIaJl-iCPPGavQI"></script>
+    
+      
+    <link href="/resource/JqueryUICustomCSS" rel="stylesheet" type='text/css'/>
+    <link href="/resource/JQueryWeekCalendarCSS" rel="stylesheet" type='text/css'/>
+     
+    <script type="text/javascript" src="/resource/JQuery11MINJS" ></script>
+    <script type="text/javascript" src="/resource/JQueryUI1811CustomMinJS"></script>
+    <script type="text/javascript" src="/resource/DateJS"></script>
+    <script type="text/javascript" src="/resource/JQueryWeekCalendarJS"></script>
+      
+    <style type='text/css'>
+    .Test
+    {
+    
+   
+    overflow:scroll;
+    }
+    .wc-container{border-left:5px solid #BBCCFF;}
+    .wc-toolbar{background:#BBCCFF;border:none;}
+    .wc-header{background:#E3E9FF;border:none;}
+    .wc-header{border-bottom:2px solid #BBCCFF;}
+    .wc-hour-end, .wc-hour-header{color:#666666;border-color:#ccc}
+    .wc-hour-header,
+    .wc-grid-timeslot-header,
+    .wc-business-hours{background:#F6F9FC;}
+    .wc-column-odd{background:transparent;}
+    .wc-column-even{background:#ddddbe;}
+    .wc-time-slots .wc-today {background-color: #ffffcc;}
+    .wc-scrollable-grid .wc-day-column-last,
+    .wc-scrollable-grid .wc-day-column-middle,
+    .wc-scrollable-grid .wc-day-column-first{border-color:#ddd;}
+    /*calendar*/
+    .wc-day-column-first,
+    .wc-day-column-last,
+    .wc-day-column-middle,
+    .wc-time-slot{border-color: #ccc;}
+    .wc-header .wc-day-column-header.wc-today{background-color:#FAD163;border-color:#FAD163;}
+    .wc-header .wc-today.wc-user-header{font-weight:normal;}
+    .wc-today.wc-day-column-last{border-right:3px double #FAD163;}
+    .wc-today.wc-day-column-first{border-left:3px double #FAD163;}
+  body {
+    font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+    margin: 0;
+  }
+  h1 {
+    margin: 0;
+    padding: 0.5em;
+  }
+  p.description {
+    font-size: 0.8em;
+    padding: 0 1em 1em;
+    margin: 0;
+  }
+  #message {
+    font-size: 0.7em;
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    width: 350px;
+    display: none;
+    padding: 1em;
+    background: #ffc;
+    border: 1px solid #dda;
+  }
+  </style>
+ <script> 
+     function miniwindowtaggle()
+      {
+         
+          $(".miniwindow").toggle();
+          $(this).toggleClass('miniwindow')
+     
+    
+      }
+      function test(eid)
+    {
+        alert(eid);
+}
+var checkprivateless=false;
+    function doValidation()
+{
+    
+    if(document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == '')
+    {
+        alert('Please enter Recordtype');
+        document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:evepbs:date}').value == '')
+    {
+        alert('Please enter Schedule Date');
+        document.getElementById('{!$Component.pg:frm:evepb:evepbs:date}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value != 'Private Lessons' && checkprivateless==false)
+    {
+        if(document.getElementById('{!$Component.pg:frm:evepb:pbname2:name}').value=='')
+        {
+            alert('Please enter Name');
+            document.getElementById('{!$Component.pg:frm:evepb:pbname2:name}').focus();
+            checkprivateless=true;
+        }
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:pb2:dancestyle}').value == '')
+    {
+        alert('Please enter Dance Style');
+        document.getElementById('{!$Component.pg:frm:evepb:pb2:dancestyle}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:pb2:dancestyle}').value == 'Wedding Packages' && document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value != 'Private Lessons')
+    {
+        alert('Please Change the Dance Style, Wedding Packages are only for private lessions');
+        document.getElementById('{!$Component.pg:frm:evepb:pb2:dancestyle}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:pb2:subdancestyle}').value == '')
+    {
+        alert('Please enter Sub Dance Style');
+        document.getElementById('{!$Component.pg:frm:evepb:pb2:subdancestyle}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:pb2:instrucotrsec:instructor}').value == '--None--')
+    {
+        alert('Please enter Instructor');
+        document.getElementById('{!$Component.pg:frm:evepb:pb2:instrucotrsec:instructor}').focus();
+    }
+    else if((document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Group Classes' || document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Workshops') && document.getElementById('{!$Component.pg:frm:evepb:pb1:skilllevel}').value == '')
+    {
+        alert('Please enter Skill Level');
+        document.getElementById('{!$Component.pg:frm:evepb:pb1:skilllevel}').focus();
+    } 
+    else if(document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Workshops' && document.getElementById('{!$Component.pg:frm:evepb:pb1:advanceprice}').value == '')
+    {
+        alert('Please enter Advanced Registration Price');
+        document.getElementById('{!$Component.pg:frm:evepb:pb1:advanceprice}').focus();
+    }
+    else if((document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Group Classes'  || document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Workshops') && document.getElementById('{!$Component.pg:frm:evepb:pb1:nofstudents}').value == '')
+    {
+        alert('Please enter Max. # of Students Allowed');
+        document.getElementById('{!$Component.pg:frm:evepb:pb1:nofstudents}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Workshops' && document.getElementById('{!$Component.pg:frm:evepb:pb1:ondayregi}').value == '')
+    {
+        alert('Please enter On the Day Registration Price');
+        document.getElementById('{!$Component.pg:frm:evepb:pb1:ondayregi}').focus();
+    }
+    else if((document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Group Classes'  || document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Workshops') && document.getElementById('{!$Component.pg:frm:evepb:pb1:crsection:classroom}').value == '')
+    {
+        alert('Please enter Class Room');
+        document.getElementById('{!$Component.pg:frm:evepb:pb1:crsection:classroom}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Private Lessons' && document.getElementById('{!$Component.pg:frm:evepb:pb1:privatecrsection:privateclassroom}').value == '')
+    {
+        alert('Please enter Class Room');
+        document.getElementById('{!$Component.pg:frm:evepb:pb1:privatecrsection:privateclassroom}').focus();
+    }
+    else if(document.getElementById('{!$Component.pg:frm:evepb:evepbs:pbsi1:rtype}').value == 'Private Lessons' && document.getElementById('{!$Component.pg:frm:evepb:pb1:studentid}').value == '')
+    {
+        alert('Please enter Student');
+        document.getElementById('{!$Component.pg:frm:evepb:pb1:studentid}').focus();
+    }
+    else 
+    {
+        savesf();
+    }
+    
+}
+function deletefn1(delid)
+{
+   
+   deletefn(delid);
+   jQuery.ready();
+   
+}
+    </script>
+  <script type='text/javascript'>
+    
+  var year = new Date().getFullYear();
+  var month = new Date().getMonth();
+  var day = new Date().getDate();
+  
+   var eventData = {
+    events : [
+       <apex:repeat value="{!events}" var="e">
+       {'id':'{!e.eId}','eby':'{!e.Orderedby}','ebcolor':'{!e.ebcolor}','ss':'{!e.ServiceSite}','ssname':'{!e.ServiceSiteName}','oby':'{!e.Orderedby}','acc':'{!e.Accountid}','ColorCode':'{!e.ColorCode}','GoogleLink':'{!e.GoogleLink}','Summory':'{!e.Summory}','CustomerName':'{!e.CustomerName}','TeamName':'{!e.TeamName}','EventName':'{!e.EventName}','isevent':'{!e.isevent}', 'start': new Date({!e.sYr}, {!e.sMn}-1, {!e.sDd}, {!e.sH},{!e.sM}), 'end': new Date({!e.eYr}, {!e.eMn}-1, {!e.eDd}, {!e.eH},{!e.eM}),'title':'{!e.title}','UserName':'','userId':{!e.userName},'uRL':'{!e.uRL}','StartTime':'{!e.StartTime}','EndTime':'{!e.EndTime}','Todaydate':'{!e.Todaydate}','location':'{!e.location}','description':'{!e.description}'},
+       </apex:repeat>
+    ]
+  };  
+  $(document).ready(function() 
+  {
+    
+ 
+    $('#calendar').weekCalendar({ 
+      date: new Date({!Syear},{!Smonth}-1,{!Sday},0,0,0,0),
+      data:eventData,
+      
+      switchDisplay: {'1 day': 1,'3 days': 3,'Work week': 5, 'Full week': 7},
+      firstDayOfWeek: function(calendar) { 
+                  if ($(calendar).weekCalendar('option', 'daysToShow') != 5) {
+                    return 0;
+                  } else {
+                    //workweek
+                    return 1;
+                  }
+              },
+      daysToShow: {!daystoshow},
+      dateFormat: 'm/d/Y', 
+      useShortDayNames:true,  
+      readonly: false,
+      allowEventCreation: true,    
+      timeslotsPerHour: 1,
+      defaultEventLength: 1,
+      slotEventOverlap: true,
+      timeslotHeight: 50,
+      buttons:false,
+      showHeader: true,
+      newEventText: 'New Schedule',
+      users: {!allusername},
+      showAsSeparateUsers: true,
+      businessHours:{start: 10, end: 23, limitDisplay: true},
+      allowCalEventOverlap: true,
+      minBodyHeight:100,
+      scrollToHourMillis: 500,
+      totalEventsWidthPercentInOneColumn:100,
+      showAsSeparateUsers:true,
+      overlapEventsSeparate: true,
+      timeSeparator: ' to ',
+      draggable: false,
+      editable: false,
+      readonly: false,
+         buttonText: {
+          today: 'today',
+          lastWeek: 'previous',
+          nextWeek: 'next'
+        },
+      
+       height: function($calendar){
+        return $(calendar).height();
+      },
+       calendarBeforeLoad: function(calendar) 
+       {
+           
+        },
+        calendarAfterLoad: function(calendar) 
+        {
+        },
+      eventHeader: function(calEvent, calendar) 
+      {
+          var options = calendar.weekCalendar('option');
+          var one_hour = 3600000;
+          var displayTitleWithTime = calEvent.end.getTime() - calEvent.start.getTime() <= (one_hour / options.timeslotsPerHour);
+         
+          if (displayTitleWithTime) 
+          {
+            var edi= calEvent.id;
+            //<button onclick="window.open(\'/apex/ClassRoomScheduleCalendar?delid='+edi+'\',\'_self\');">X</button>'
+            //return calEvent.isevent+'<button onclick="deletefn1(\''+calEvent.id+'\');">X</button>';
+            return calEvent.isevent;
+          } else {
+              return calEvent.isevent; 
+          }
+        },
+       
+      setEventUserId: function(userId, calEvent, calendar) {
+          calEvent.userId = userId;
+          return calEvent;
+        },
+       
+      eventRender: function(calEvent, $event) 
+      {
+        if (calEvent.end.getTime() < new Date().getTime()) 
+        {
+         
+              $event.css({'backgroundColor':calEvent.ColorCode,'color':'#0A0B0B','border-radius': '10px','border':'2px solid #a1a1a1','border-color':calEvent.ebcolor});
+         
+          
+          $event.find('.time').css({'backgroundColor': '#F71A64','border':'1px solid #888','border-radius': '25px'});
+        }
+        else if (calEvent.end.getTime() > new Date().getTime()) 
+        {
+           $event.css({'backgroundColor':calEvent.ColorCode,'color':'#0A0B0B','border-radius': '10px','border':'2px solid #a1a1a1','border-color':calEvent.ebcolor});
+        
+        }
+      },
+      getUserName: function(user, index,calendar)
+      {
+          
+          return user;
+       },
+       draggable: function(calEvent, element) {
+         
+          return false;
+        },
+        resizable: function(calEvent, element) {
+          return false;
+        },
+      eventNew: function(calEvent, $event) 
+      {
+           
+           /*var starttime='';
+           if(calEvent.start.getHours()<=11)
+           {
+               if(calEvent.start.getMinutes()!=0)
+                   starttime=calEvent.start.getHours()+'.'+calEvent.start.getMinutes()+' AM';
+               else starttime=(calEvent.start.getHours())+' AM';
+           }
+           else if(calEvent.start.getHours()==12)
+           {
+               if(calEvent.start.getMinutes()!=0)
+                   starttime=(calEvent.start.getHours())+'.'+calEvent.start.getMinutes()+' PM';
+               else starttime=(calEvent.start.getHours())+' PM';
+           }
+           else 
+           {
+               if(calEvent.start.getMinutes()!=0)
+                   starttime=(calEvent.start.getHours()-12)+'.'+calEvent.start.getMinutes()+' PM';
+               else starttime=(calEvent.start.getHours()-12)+' PM';
+           }
+          
+           
+           var Endtime='';
+           if(calEvent.end.getHours()<=11)
+           {
+               if(calEvent.end.getMinutes()!=0)
+                   Endtime=calEvent.end.getHours()+'.'+calEvent.end.getMinutes()+' AM';
+               else Endtime=calEvent.end.getHours()+' AM';
+           }
+           else if(calEvent.end.getHours()==12)
+           {
+               if(calEvent.end.getMinutes()!=0)
+                   Endtime=(calEvent.end.getHours())+'.'+calEvent.end.getMinutes()+' PM';
+               else Endtime=(calEvent.end.getHours())+' PM';
+           }
+           else 
+           {
+               if(calEvent.end.getMinutes()!=0)
+                   Endtime=(calEvent.end.getHours()-12)+'.'+calEvent.end.getMinutes()+' PM';
+               else Endtime=(calEvent.end.getHours()-12)+' PM';
+           }
+            document.getElementById('pg:frm:evepb:pb2:etime').innerHTML=Endtime; 
+            document.getElementById('pg:frm:evepb:pb2:stime').innerHTML=starttime; 
+            document.getElementById('pg:frm:evepb:evepbs:date').innerHTML=(calEvent.end.getMonth()+1)+'/'+(calEvent.end.getDate())+'/'+calEvent.end.getFullYear();  
+            document.getElementById('pg:frm:evepb:clsetime').value=Endtime; 
+            document.getElementById('pg:frm:evepb:clsstime').value=starttime; 
+            document.getElementById('pg:frm:evepb:clsdate').value=(calEvent.end.getMonth()+1)+'/'+(calEvent.end.getDate())+'/'+calEvent.end.getFullYear();
+            
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.ClassRoomScheduleCalendar.getinstructername}',
+                calEvent.userId, {!allusername},handleResult,
+                function(result, event)
+                {
+                    if (event.status) 
+                    {
+                       
+                       
+                        
+                    }
+                    else if (event.type === 'exception') 
+                    {
+                        document.getElementById("responseErrors").innerHTML = 
+                        event.message + "<br/>\n<pre>" + event.where + "</pre>";
+                    } 
+                    else 
+                    {
+                        document.getElementById("responseErrors").innerHTML = event.message;
+                    }
+                }, 
+                {escape: true}
+            );
+            function handleResult(result, event) 
+            { 
+                
+                var splitstring=result.split("@");
+                document.getElementById('{!$Component.pg:frm:evepb:pb2:instrucotrsec:instructor}').value=splitstring[0]
+                document.getElementById('pg:frm:evepb:instructid').value=splitstring[0]; 
+               
+                 
+                
+            }
+            if(calEvent.userId!=undefined)
+            {
+                //$('.fieldToHide').show();
+                      // $('.fieldToHide').css({'top':event.pageY-450,'left':event.pageX-200, 'position':'absolute','z-index':'9999','background-color':'#F0F8FF','width':'60%','height': '0px','border-radius': '25px', 'border':'0px solid black', 'padding':'1px'});
+
+            }
+            else 
+            {
+                alert('No Instructor Name at Header Level');
+            }
+           
+            
+            */
+            
+            
+             
+      },
+      eventDrop: function(calEvent, $event)
+      {
+            /*var starttime='';
+           if(calEvent.start.getHours()<=11)
+           {
+               if(calEvent.start.getMinutes()!=0)
+                   starttime=calEvent.start.getHours()+'.'+calEvent.start.getMinutes()+' AM';
+               else starttime=(calEvent.start.getHours())+' AM';
+           }
+           else if(calEvent.start.getHours()==12)
+           {
+               if(calEvent.start.getMinutes()!=0)
+                   starttime=(calEvent.start.getHours())+'.'+calEvent.start.getMinutes()+' PM';
+               else starttime=(calEvent.start.getHours())+' PM';
+           }
+           else 
+           {
+               if(calEvent.start.getMinutes()!=0)
+                   starttime=(calEvent.start.getHours()-12)+'.'+calEvent.start.getMinutes()+' PM';
+               else starttime=(calEvent.start.getHours()-12)+' PM';
+           }
+          
+           
+           var Endtime='';
+           if(calEvent.end.getHours()<=11)
+           {
+               if(calEvent.end.getMinutes()!=0)
+                   Endtime=calEvent.end.getHours()+'.'+calEvent.end.getMinutes()+' AM';
+               else Endtime=calEvent.end.getHours()+' AM';
+           }
+           else if(calEvent.end.getHours()==12)
+           {
+               if(calEvent.end.getMinutes()!=0)
+                   Endtime=(calEvent.end.getHours())+'.'+calEvent.end.getMinutes()+' PM';
+               else Endtime=(calEvent.end.getHours())+' PM';
+           }
+           else 
+           {
+               if(calEvent.end.getMinutes()!=0)
+                   Endtime=(calEvent.end.getHours()-12)+'.'+calEvent.end.getMinutes()+' PM';
+               else Endtime=(calEvent.end.getHours()-12)+' PM';
+           }
+            
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.ClassRoomScheduleCalendar.getinstructername}',
+                calEvent.userId, {!allusername},handleResult,
+                function(result, event)
+                {
+                    if (event.status) 
+                    {
+                       
+                       
+                        
+                    }
+                    else if (event.type === 'exception') 
+                    {
+                       
+                    } 
+                    else 
+                    {
+                      
+                    }
+                }, 
+                {escape: true}
+            );
+            function handleResult(result, event) 
+            { 
+                
+                var splitstring=result.split("@");
+                
+
+                updatefunct(calEvent.id,calEvent.end.getFullYear()+'-'+(calEvent.end.getMonth()+1)+'-'+(calEvent.end.getDate()),starttime,Endtime,splitstring[0]);
+               
+            }*/
+            
+      },
+      eventResize: function(calEvent, $event) {
+        
+      },
+      eventClick: function(calEvent, $event) 
+      {
+          window.open('/'+calEvent.uRL,'_blank');
+      },
+      eventMouseover: function(calEvent, $event,e) 
+      {
+           $('.minimessage').empty();
+            if(calEvent.isevent!='Private Lessons' && calEvent.isevent!='Intro Classes' && calEvent.isevent !='Dance Parties/Practices' && calEvent.isevent !='Rental & Floor')
+            $('.minimessage').append('<table width="100%"><tr><td><b>Class Name:</b></td></tr><tr><td> '+calEvent.EventName+'</td></tr><tr><td><b>Instructor:</b></td></tr><tr><td> '+calEvent.ss+'</td></tr><tr><td><b>Second Instructor:</b></td></tr><tr><td> '+calEvent.eby+'</td></tr><!--<tr><tr><td><b>Dance Style:</b></td></tr><tr><td> '+calEvent.CustomerName+'</td></tr><tr><td><b>Sub Dance Style:</b></td></tr><tr><td>'+calEvent.ssname+'</td></tr><tr><td><b>Class Room:</b></td></tr><tr><td> '+calEvent.Summory+'</td></tr><tr><td><b>Max. # of Students Allowed:</b></td></tr><tr><td> '+calEvent.GoogleLink+'</td></tr>--><tr><td><b>Notes:</b></td></tr><tr><td> '+calEvent.description+'</td></tr></table><br/><br/><br/> ');
+            else if(calEvent.isevent =='Dance Parties/Practices')
+            $('.minimessage').append('<table width="100%"><tr><td><b>Class Name:</b></td></tr><tr><td> '+calEvent.EventName+'</td></tr><!--<tr><td><b>Instructor:</b></td></tr><tr><td> '+calEvent.ss+'</td></tr><tr>--><tr><td><b>Dance Style:</b></td></tr><tr><td> '+calEvent.CustomerName+'</td></tr><tr><td><b>Sub Dance Style:</b></td></tr><tr><td>'+calEvent.ssname+'</td></tr><!--<tr><td><b>Class Room:</b></td></tr><tr><td> '+calEvent.Summory+'</td></tr>--><!--<tr><td><b>Max. # of Students Allowed:</b></td></tr><tr><td> '+calEvent.GoogleLink+'</td></tr>--><tr><td><b>Notes:</b></td></tr><tr><td> '+calEvent.description+'</td></tr></table> <br/><br/><br/>');
+            else if(calEvent.isevent =='Rental & Floor')
+                    $('.minimessage').append('<table width="100%"><tr><td><b>Student:</b></td></tr><tr><td> '+calEvent.CustomerName+'</td></tr><tr><td><b>Rental/Floor:</b></td></tr><tr><td> '+calEvent.ss+'</td></tr><tr><td><b>Payment Status:</b></td></tr><tr><td> '+calEvent.ssname+'</td></tr></table> <br/><br/><br/>');
+            
+            //else $('.minimessage').append('<table width="100%"><tr><td><b>Class Name:</b></td></tr><tr><td> '+calEvent.EventName+'</td></tr><!--<tr><td><b>Instructor:</b></td></tr><tr><td> '+calEvent.ss+'</td></tr>--><tr><tr><td><b>Dance Style:</b></td></tr><tr><td> '+calEvent.CustomerName+'</td></tr><tr><td><b>Sub Dance Style:</b></td></tr><tr><td>'+calEvent.ssname+'</td></tr><!--<tr><td><b>Class Room:</b></td></tr><tr><td> '+calEvent.Summory+'</td></tr>--><tr><td><b>Notes:</b></td></tr><tr><td> '+calEvent.description+'</td></tr></table> ');
+            else $('.minimessage').append('<table width="100%"><tr><td><b>Class Name:</b></td></tr><tr><td> '+calEvent.EventName+'</td></tr><tr><td><b>Dance Style:</b></td></tr><tr><td> '+calEvent.CustomerName+'</td></tr><tr><td><b>Class Type:</b></td></tr><tr><td>'+calEvent.ss+'</td></tr><!--<tr><td><b>Class Room:</b></td></tr><tr><td> '+calEvent.Summory+'</td></tr>--><tr><td><b>Payment Status:</b></td></tr><tr><td> '+calEvent.ssname+'</td></tr><tr><td><b>Checked in:</b></td></tr><tr><td> '+calEvent.GoogleLink+'</td></tr><tr><td><b>Validated:</b></td></tr><tr><td> '+calEvent.eby+'</td></tr>  <tr><td><b>Notes:</b></td></tr><tr><td> '+calEvent.description+'</td></tr></table><br/><br/><br/> ');           
+            $('.minimessage').css({'top':e.pageY-100,'left':e.pageX, 'position':'absolute','z-index':'9999','background-color':'#FFFFFF', 'border':'1px solid #66FFFF', 'padding':'5px'});
+            $('.minimessage').show();  
+               
+           
+      },
+      eventMouseout: function(calEvent, $event) 
+      {
+        $('.minimessage').hide();
+      },
+      noEvents: function() 
+      {
+           
+      }
+    });
+    function displayMessage(message) {
+      $('#message').html(message).fadeIn();
+    }
+    $('<div id="message" class="ui-corner-all"></div>').prependTo($('body'));
+  });
+  </script>
+ <apex:form id="frm">
+  <apex:actionFunction action="{!update2}" name="updatefunct" rerender="pg">
+  <apex:param name="CPid" value=""/>
+  <apex:param name="UStartDate" value=""/>
+  <apex:param name="Ustarttime" value=""/>
+  <apex:param name="Uendtime" value=""/>
+  <apex:param name="Instructorid" value=""/>
+  </apex:actionFunction>
+  <apex:actionFunction name="savesf" action="{!save1}"/> 
+  <apex:actionFunction action="{!deletemeth}" name="deletefn" rerender="pg">
+      <apex:param name="delid" value=""/>   
+  </apex:actionFunction>  
+  <apex:actionFunction action="{!changescheduledate}" name="Scheduledatejs" rerender="pg">
+      <apex:param name="sddate" value=""/>   
+  </apex:actionFunction>    
+             <apex:outputPanel id="Eventpopup" styleClass="fieldToHide" style="display:none;margin-top:0px;margin-left:20px;width:95%; height: 100px;">
+               <apex:pageBlock id="evepb">
+                  
+                   <apex:pageMessages id="msg"></apex:pageMessages>
+                   <center><apex:commandButton value="Save" onclick="doValidation();"  reRender="msg"/><apex:commandButton value="Cancel"  action="{!cancel}" /></center>
+                   <apex:actionRegion >
+                   <apex:pageBlockSection columns="2" id="evepbs" title="Information">
+                    <apex:pageBlockSectionItem id="pbsi1">
+                    Recordtype<apex:selectList id="rtype" size="1" value="{!recordtypeid}"><apex:selectOptions value="{!recordtypes}"></apex:selectOptions><apex:actionSupport event="onchange"  reRender="pb1,pbname2"/></apex:selectList>
+                    </apex:pageBlockSectionItem>
+                    <apex:outputField id="date" value="{!clspak.Date__c}"/>
+                   </apex:pageBlockSection>
+                       </apex:actionRegion> 
+                   <apex:pageBlockSection id="pbname2">  
+                     
+                   <apex:inputField id="name" value="{!clspak.Name}" rendered="{!recordtypeid!='Private Lessons'}"/>    
+                    </apex:pageBlockSection>
+                   <apex:pageBlockSection id="pb2">
+                   
+                    <apex:inputField id="dancestyle" value="{!clspak.Dance_Style__c}"/>
+                    <apex:outputField id="stime" value="{!clspak.Start_Time__c}"/>
+                    <apex:inputField id="subdancestyle" value="{!clspak.Sub_Dance_Style__c}"/>
+                    <apex:outputField id="etime" value="{!clspak.End_Time__c}"/>
+                    
+                    <apex:inputField id="ballroomtype" value="{!clspak.Ballroom_Type1__c}"/>
+                   <apex:pageblockSectionItem id="instrucotrsec">Instructor
+                   <apex:selectList size="1" id="instructor" value="{!instidd}"><apex:selectOptions value="{!instructorpicklist}"></apex:selectOptions></apex:selectList>
+                   </apex:pageblockSectionItem>
+                    
+                    <apex:pageblockSectionItem id="subinstrucotrsec">Second Instructor
+                   <apex:selectList size="1" id="subinstructor" value="{!subinstidd}"><apex:selectOptions value="{!instructorpicklist2}"></apex:selectOptions></apex:selectList>
+                   </apex:pageblockSectionItem>
+                   
+                     
+                    <!--<apex:inputField id="salsaon" value="{!clspak.Salsa_on_2__c}"/>-->
+                   </apex:pageBlockSection>
+                  
+                   
+                   <apex:pageBlockSection columns="2"  id="pb1">
+                    <apex:inputField id="skilllevel" value="{!clspak.Skill_Level__c}" rendered="{!OR(recordtypeid='Group Classes',recordtypeid='Workshops')}"/> 
+                     <apex:inputField value="{!clspak.Month__c}" rendered="{!OR(recordtypeid='Group Classes',recordtypeid='Workshops')}"/> 
+                    
+                     <apex:inputField value="{!clspak.Class_Code__c}" rendered="{!!OR(recordtypeid='Private Lessons',recordtypeid='Workshops')}"/>
+                       
+                    <!--<apex:inputField value="{!clspak.Class_Room__c}" rendered="{!Or(recordtypeid='Private Lessons',recordtypeid='Workshops',recordtypeid='Workshops')}"/>-->
+                    <apex:pageBlockSectionItem id="crsection"  rendered="{!Or(recordtypeid='Group Classes',recordtypeid='Workshops')}">Class Room
+                    <apex:selectList size="1" id="classroom"  value="{!classroomid}"><apex:selectOptions value="{!ClassRooms}"></apex:selectOptions> </apex:selectList>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem id="privatecrsection"  rendered="{!AND(recordtypeid='Private Lessons')}">Private Class Room
+                    <apex:selectList size="1" id="privateclassroom"  value="{!privateclassroomid}"><apex:selectOptions value="{!privateClassRooms}"></apex:selectOptions> </apex:selectList>
+                    </apex:pageBlockSectionItem> 
+                    <apex:inputField value="{!clspak.Year__c}" rendered="{!OR(recordtypeid='Group Classes',recordtypeid='Workshops')}"/> 
+                    
+                    <apex:inputField id="advanceprice" value="{!clspak.Cost__c}" rendered="{!recordtypeid='Workshops'}"/> 
+                    <apex:pageBlockSectionItem rendered="{!recordtypeid='Workshops'}"></apex:pageBlockSectionItem>
+                     <apex:inputField id="nofstudents" value="{!clspak.of_Students_Allowed__c}"  rendered="{!OR(recordtypeid='Group Classes',recordtypeid='Workshops')}"/>
+                    <apex:inputField value="{!clspak.Day_of_Week__c}" rendered="{!OR(recordtypeid='Group Classes',recordtypeid='Workshops')}"/> 
+                                    
+                    <apex:inputField id="ondayregi" value="{!clspak.On_the_Day_Registration_Price__c}" rendered="{!recordtypeid='Workshops'}"/>
+                    <apex:pageBlockSectionItem rendered="{!recordtypeid='Workshops'}"></apex:pageBlockSectionItem>
+                    <apex:inputField value="{!clspak.Lead_Follow__c}" rendered="{!OR(recordtypeid='Group Classes',recordtypeid='Workshops')}"/>
+                    <apex:inputField value="{!clspak.of_Weeks__c}" rendered="{!OR(recordtypeid='Group Classes',recordtypeid='Workshops')}"/>  
+                  
+                    <apex:inputField id="studentid" value="{!clspak.Student__c}" rendered="{!recordtypeid='Private Lessons'}"/>
+                     
+                     <apex:pageBlockSectionItem id="bookedby"  rendered="{!AND(recordtypeid='Private Lessons')}">Booked by
+                    <apex:selectList size="1" id="bookedbyid" value="{!bookedbyid}"  ><apex:selectOptions value="{!Bookedbylist}"></apex:selectOptions> </apex:selectList>
+                    </apex:pageBlockSectionItem>
+                    
+                   
+                    
+                    
+                      
+                   </apex:pageBlockSection> 
+                       
+                   <apex:pageBlockSection title="Description Information">
+                       <apex:inputField value="{!clspak.Description__c}"/>
+                   </apex:pageBlockSection>
+                   <apex:inputHidden id="clsdate" value="{!clspackdate}"/>   
+                   <apex:inputHidden id="clsstime" value="{!clspackstarttime}"/>
+                   <apex:inputHidden id="clsetime" value="{!clspackendtime}"/>
+                   <apex:inputHidden id="instructid" value="{!instructorid}"/>   
+               </apex:pageBlock>
+          </apex:outputPanel> 
+          
+           
+          <table width="100%" border="0">
+                 <tr><td rowspan="2" width="1%">
+                 
+         <!-- <apex:inputField value="{!Tempopp.Schedule_Date__c}" showDatePicker="true" ><apex:actionSupport event="onchange" action="{!changedatemeth}"/></apex:inputField>-->
+         <apex:stylesheet value="/sCSS/Theme2/default/homeCalendar.css" />  
+         <apex:outputPanel id="theCalendar" >
+         
+            <div class="mCalendar" style="width:182px;" bgcolor="#0E467B"><div class="topLeft" ><div class="topRight"/></div>
+            <div class="body">
+            
+            <table cellspacing="0" cellpadding="2" border="0" bgcolor="#D7E2EC" >
+           
+                <tbody>
+                    <tr class="header">
+                        <td><apex:commandLink action="{!prev}" rerender="theCalendar">
+                            <img title="Previous Month" class="prevCalArrow" alt="Previous Month" src="/s.gif" />
+                        </apex:commandLink></td>
+                        <td colspan="5" >
+                        {!month.monthname} {!month.yearname}
+                        </td>
+                        <td><apex:commandLink action="{!next}" rerender="theCalendar">
+                            <img title="Next Month" class="nextCalArrow" alt="Next Month"
+                                src="/s.gif" />
+                        </apex:commandLink></td>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="col" class="calDays">Sun</th>
+                        <th scope="col" class="calDays">Mon</th>
+                        <th scope="col" class="calDays">Tue</th>
+                        <th scope="col" class="calDays">Wed</th>
+                        <th scope="col" class="calDays">Thu</th>
+                        <th scope="col" class="calDays">Fri</th>
+                        <th scope="col" class="calDays">Sat</th>
+                    </tr>
+                    
+                    <apex:repeat value="{!weeks}" var="wk" id="foreachWeek">
+                        <tr class="days">
+                            <!-- or highlight -->
+                            <apex:repeat value="{!wk.days}" var="day" id="foreachday">
+                                <td valign="top"><a href=""  title="Day View - {!day.date}"></a>
+                                   <!-- <apex:outputLabel value="{!day.dayofmonth2}"   onclick="Scheduledatejs('{!day.date}');"> </apex:outputLabel>-->
+                                   <apex:commandLink value="{!day.dayofmonth2}" action="{!changescheduledate}"><apex:param name="sddate" value="{!day.datestring11}"/></apex:commandLink>
+                                    
+                                    </td>
+                                    
+                            </apex:repeat>
+                        </tr>
+                    </apex:repeat>
+                    
+                </tbody>
+            </table>
+            </div>
+            <div class="bottomLeft"><div class="bottomRight"/></div>
+            </div>
+            
+            </apex:outputPanel>
+              
+           </td><td align="Center" colspan="3"><font size="6">Class Room Calendar</font></td></tr>
+                 <tr>
+                 
+                 
+                  
+      
+      
+           
+                 
+                 
+                 
+                 
+                 
+                 
+                 <td width="20%" colspan="3" style="vertical-align:top;">
+                    <apex:outputPanel id="searchpage">
+                    
+                     <apex:actionRegion >
+                     <table width="100%" border="0" cellpadding="5%"> 
+                         <tr><td colspan="5"><apex:pagemessages ></apex:pagemessages></td></tr>
+                         <tr><td colspan="3" align="center"><font color="blue">* To select multiple Class Rooms use Ctrl+Mouse Click.</font></td></tr>
+                         <tr> 
+                              <td width="40%" align="right"><apex:outputText >Class Room</apex:outputText></td><td> <apex:selectList size="5" value="{!filterclassroomids}" multiselect="true" > <apex:selectOptions value="{!filterclassroomlist}"></apex:selectOptions></apex:selectList>
+                                                    </td>
+                        
+                        
+                        <!-- <td width="14%" align="right"><b>Instructor</b></td><td width="14%"><apex:selectList size="5" multiselect="true" value="{!instructorname}"><apex:selectOptions value="{!instructors}"></apex:selectOptions></apex:selectList></td>-->
+                         <td  width="40%" align="left"><apex:commandButton value="Search" action="{!search}"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <apex:commandButton value="Clear Filters" action="{!clearfilter}"/></td>
+                         </tr>    
+                     </table>
+                   </apex:actionRegion>
+                     </apex:outputPanel>
+                    <!-- <apex:outputPanel style="font-size:200%;width:100%" >  <apex:outputLabel style="border-radius: 10px;background-color:#D0D0D0;width:100%;height:100%;" ONCLick="miniwindowtaggle();" >&nbsp;&nbsp;<font size="2"  style="vertical-align:25%;width:100%;">Team Selection</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<apex:image style="border-radius: 2px;"  value="{!$Resource.DownArowB}" width="12%" height="3.5%"/> </apex:outputLabel>&nbsp;&nbsp; </apex:outputPanel> 
+                                           <br/>
+                                           <apex:outputPanel id="miniwindow" StyleClass="miniwindow"  style="background-color: #E8E8E8;display:none;margin-left:0px;width:15%;overflow: auto; height:180px;position:absolute;z-index:9999;">
+               
+                                                
+                                        <table>
+                                        
+                                         <apex:repeat value="{!skilltypes}" var="sts">
+                                          <tr><td><apex:actionRegion ><apex:inputCheckbox id="inputId"  value="{!sts.Selectskill}" ><apex:actionSupport event="onchange" action="{!searchInstructor}"/></apex:inputCheckbox></apex:actionRegion></td> <td><apex:outputText value="{!sts.skillname}"></apex:outputText></td></tr>
+                                         </apex:repeat>
+                                         </table>
+                                                    
+                         </apex:outputPanel>  
+                      -->                          
+                     </td>                     
+              </tr>
+              
+             <tr>
+                 <td colspan="3"><apex:commandButton value="Previous" action="{!previous}"/><apex:commandButton value="Today" action="{!today}"/><apex:commandButton value="Next" action="{!calnext}"/><!--<apex:commandButton value="1 day" action="{!oneday}"/><apex:commandButton value="3 days" action="{!threedays}"/><apex:commandButton value="Work Week" action="{!workweek}"/>--><apex:commandButton value="Full Week" action="{!fullweek}"/><!--<apex:commandButton value="One Month" action="{!monthview}"/>--></td>
+                <td align="right"><apex:commandButton value="First" action="{!first}"/><apex:commandButton value="previous" rendered="{!hasPrevious}" action="{!previousInstructor}"/><apex:commandButton value="Next" rendered="{!hasNext}" action="{!nextinstructor}"/><apex:commandButton value="Last" action="{!last}"/></td>
+             </tr>
+              
+              
+              
+              
+              
+                <tr>     
+                <td colspan="4">  
+                
+                    <!--<apex:outputPanel layout="block" style="overflow:auto;width:110%; height:450px;margin: 0 2px;">--><div id="calendar" style="height:650pt;width:100%;" ></div><!-- </apex:outputPanel>--><div Class="minimessage" ></div>
+                    <br/><br/><br/><br/><br/><br/>
+                </td>
+                 </tr>
+          </table>     
+               
+        
+             
+             
+             
+      
+</apex:form>
+   
+    
+</apex:page>
+                                        
